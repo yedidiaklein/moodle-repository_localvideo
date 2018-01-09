@@ -57,9 +57,9 @@ class repository_localvideo extends repository {
 		$this->streaming = $this->get_option('streaming');
 
         // Without an API key, don't show this repo to users as its useless without it.
-        if (empty($this->video_site)) {
-            $this->disabled = true;
-        }
+        //if (empty($this->video_site)) {
+        //    $this->disabled = true;
+        //}
     }
 
     /**
