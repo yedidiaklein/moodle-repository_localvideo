@@ -26,12 +26,7 @@ require_once($CFG->dirroot . '/repository/lib.php');
 
 /**
  * repository_localvideo class
- *
- * @since Moodle 2.0
- * @package    repository_localvideo
- * @copyright  2016 OpenApp {@link http://openapp.co.il}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+ **/
 
 class repository_localvideo extends repository {
     /** @var int maximum number of thumbs per page */
@@ -55,11 +50,6 @@ class repository_localvideo extends repository {
 
         $this->video_site = $this->get_option('video_site');
 		$this->streaming = $this->get_option('streaming');
-
-        // Without an API key, don't show this repo to users as its useless without it.
-        //if (empty($this->video_site)) {
-        //    $this->disabled = true;
-        //}
     }
 
     /**
@@ -174,7 +164,7 @@ class repository_localvideo extends repository {
         
         list($context, $course, $cm) = get_context_info_array($this->context->id);
         $courseid = is_object($course) ? $course->id : SITEID;
-//        $vodlist = $DB->get_records('local_video_directory',array());
+
     	if (is_siteadmin($USER)) {
         	$vodlist = $DB->get_records_sql('SELECT v.*, ' . $DB->sql_concat_join("' '", array("firstname", "lastname")) .
         	                                ' AS name FROM {local_video_directory} v
@@ -335,7 +325,7 @@ class repository_localvideo extends repository {
 
         $mform->addElement('text', 'streaming', get_string('streaming', 'repository_localvideo'), array('value' => $streaming, 'size' => '40'));
         $mform->setType('streaming', PARAM_RAW_TRIMMED);
-        $mform->addRule('streaming', null, null , null, 'client');
+        //$mform->addRule('streaming', null, null , null, 'client');
 
 
         $mform->addElement('static', null, '',  get_string('information', 'repository_localvideo'));
