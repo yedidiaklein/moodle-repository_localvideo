@@ -165,18 +165,54 @@ class repository_localvideo extends repository {
         list($context, $course, $cm) = get_context_info_array($this->context->id);
         $courseid = is_object($course) ? $course->id : SITEID;
 
-    	if (is_siteadmin($USER)) {
+        if ($mode == 'description') {
+    	  if (is_siteadmin($USER)) {
         	$vodlist = $DB->get_records_sql('SELECT v.*, ' . $DB->sql_concat_join("' '", array("firstname", "lastname")) .
         	                                ' AS name FROM {local_video_directory} v
                 	                        LEFT JOIN {user} u on v.owner_id = u.id
 						WHERE ' . $DB->sql_like('orig_filename', ':keyword') ,array('keyword'=>'%'.$DB->sql_like_escape($keyword).'%'));
-    	} else {
+    	  } else {
         	$vodlist = $DB->get_records_sql('SELECT v.*, ' . $DB->sql_concat_join("' '", array("firstname", "lastname")) .
                                                 ' AS name FROM {local_video_directory} v
                         	                LEFT JOIN {user} u on v.owner_id = u.id WHERE owner_id =' . $USER->id .
                                 	        ' OR (private IS NULL OR private = 0)
 						AND ' . $DB->sql_like('orig_filename', ':keyword') ,array('keyword'=>'%'.$DB->sql_like_escape($keyword).'%'));
-    	}
+    	  }
+        } else { // Mode is tags.
+            // Find tags ids that match search.
+            $tags = $DB->get_records_sql("SELECT id,name FROM {tag} WHERE " .
+                    $DB->sql_like('name', ':keyword') ,array('keyword'=>'%'.$DB->sql_like_escape($keyword).'%'));
+            $tagslist = "";
+            foreach ($tags as $tag) {
+                $tagslist .= "'" . $tag->name . "',";
+            }
+            // Remove last comma.
+            $tagslist = substr($tagslist,0,-1);
+
+            if ($tags) {
+                if (is_siteadmin($USER)) {
+                    $vodlist = $DB->get_records_sql('SELECT v.*, ' . $DB->sql_concat_join("' '", array("firstname", "lastname")) . ' AS name
+                                                FROM {local_video_directory} v
+                                                LEFT JOIN {user} u on v.owner_id = u.id
+                                                LEFT JOIN {tag_instance} ti on v.id=ti.itemid
+                                                LEFT JOIN {tag} t on ti.tagid=t.id
+                                                WHERE ti.itemtype = \'local_video_directory\' AND t.name IN (' . $tagslist . ')
+                                                GROUP by id');
+                } else {
+                    $vodlist = $DB->get_records_sql('SELECT v.*, ' . $DB->sql_concat_join("' '", array("firstname", "lastname")) . ' AS name
+                                                FROM {local_video_directory} v
+                                                LEFT JOIN {user} u on v.owner_id = u.id
+                                                LEFT JOIN {tag_instance} ti on v.id=ti.itemid
+                                                LEFT JOIN {tag} t on ti.tagid=t.id
+                                                WHERE ti.itemtype = \'local_video_directory\' AND t.name IN (' . $tagslist . ')
+                                                AND (owner_id =' . $USER->id . ' OR (private IS NULL OR private = 0))
+                                                GROUP by id');
+                }
+            }
+
+
+        }
+        
 
 	$videosettings = get_config('local_video_directory');
 
